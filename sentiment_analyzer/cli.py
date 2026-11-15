@@ -97,29 +97,37 @@ def cmd_classify(args):
 def main(argv=None):
     p = argparse.ArgumentParser(prog="sentiment_analyzer", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("-v", "--verbose", action="store_true", help="show per-source progress")
+    # Also accept -v after the sub-command ("collect -v"). SUPPRESS keeps a
+    # sub-command default from overwriting a -v given before the sub-command.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("-v", "--verbose", action="store_true", default=argparse.SUPPRESS,
+                        help="show per-source progress")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    s = sub.add_parser("train", help="train the sentiment classifier")
+    def add_cmd(name, **kw):
+        return sub.add_parser(name, parents=[common], **kw)
+
+    s = add_cmd("train", help="train the sentiment classifier")
     s.add_argument("--data", default=config.TRAINING_CSV, help="CSV with text,label columns")
 
-    s = sub.add_parser("collect", help="scrape news/social posts, classify, fetch prices")
+    s = add_cmd("collect", help="scrape news/social posts, classify, fetch prices")
     s.add_argument("--tickers", nargs="+", default=config.DEFAULT_TICKERS, type=str.upper)
     s.add_argument("--sources", nargs="+", choices=list(scrapers.ALL_SCRAPERS))
     s.add_argument("--period", default="6mo", help="price history period for yfinance")
 
-    s = sub.add_parser("demo", help="load clearly-labeled synthetic data (offline)")
+    s = add_cmd("demo", help="load clearly-labeled synthetic data (offline)")
     s.add_argument("--tickers", nargs="+", default=config.DEFAULT_TICKERS, type=str.upper)
     s.add_argument("--days", type=int, default=120)
     s.add_argument("--clear", action="store_true", help="remove demo rows instead")
 
-    s = sub.add_parser("analyze", help="print sentiment/price correlation report")
+    s = add_cmd("analyze", help="print sentiment/price correlation report")
     s.add_argument("--ticker", type=str.upper)
 
-    s = sub.add_parser("classify", help="classify ad-hoc text")
+    s = add_cmd("classify", help="classify ad-hoc text")
     s.add_argument("text", nargs="+")
 
-    sub.add_parser("dashboard", help="launch the Streamlit dashboard")
+    add_cmd("dashboard", help="launch the Streamlit dashboard")
 
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING,

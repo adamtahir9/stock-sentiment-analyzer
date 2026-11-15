@@ -5,6 +5,9 @@ classifies each text as **positive / neutral / negative** with an NLP model, and
 lines the daily sentiment up against price data to show whether shifts in
 investor sentiment come before, with, or after market moves.
 
+![Dashboard: sentiment score, price and daily sentiment for AAPL](docs/dashboard.png)
+*Dashboard running on the built-in synthetic demo data (`python -m sentiment_analyzer demo`).*
+
 ```
  ┌───────────── collect ─────────────┐    ┌──── NLP ────┐    ┌──── analyze ─────┐    ┌── dashboard ──┐
  Yahoo Finance RSS · Google News RSS     tokenize + negation   daily sentiment per     Streamlit + Plotly
